@@ -4,6 +4,7 @@ import re
 import json
 import requests
 import feedparser
+import logging
 from google import genai
 from google.genai import types
 from datetime import datetime, timezone
@@ -15,15 +16,24 @@ TICKERS = ["AAPL", "MSFT", "GOOG", "META", "AMZN", "COST", "NFLX", "VTI"]
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
+# --- SETUP LOGGING ---
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
 # Initialize Gemini
 if GEMINI_API_KEY:
     client = genai.Client()
 else:
+    logging.error("Missing GEMINI_API_KEY environment variable")
     raise ValueError("Missing GEMINI_API_KEY environment variable")
 
 # --- CORE FUNCTIONS ---
 def fetch_rss_headlines(tickers: List[str]) -> Dict[str, Dict]:
     """Fetches RSS headlines filtered strictly by current Year-Month-Day."""
+    logging.info(f"Scanning RSS feeds for date: {today_date}")
     
     # Get current date (UTC) as a date object: YYYY-MM-DD
     today_date = datetime.now(timezone.utc).date()
@@ -34,6 +44,7 @@ def fetch_rss_headlines(tickers: List[str]) -> Dict[str, Dict]:
     for ticker in tickers:
         feed_url = f"https://finance.yahoo.com/rss/headline?s={ticker}"
         feed = feedparser.parse(feed_url)
+        logging.info(f"Fetched feed for {ticker} with {len(feed.entries)} entries.")
         
         for index, entry in enumerate(feed.entries):
             # 1. Skip if no date info exists
@@ -54,7 +65,7 @@ def fetch_rss_headlines(tickers: List[str]) -> Dict[str, Dict]:
                     "date_str": pub_date.isoformat() # Stores as "2026-02-07"
                 }
     
-    print(f"Found {len(headline_map)} articles published on {today_date}.")
+    logging.info(f"Found {len(headline_map)} articles published on {today_date}.")
     return headline_map
 
 def identify_priority_stories(headline_map: Dict[str, Dict]) -> List[str]:
@@ -76,6 +87,7 @@ def identify_priority_stories(headline_map: Dict[str, Dict]) -> List[str]:
     """
     
     try:
+        logging.info("Sending headlines to Gemini for priority filtering...")
         response = client.models.generate_content(
                 model="gemini-3-flash-preview",
                 contents=[prompt],
@@ -85,15 +97,16 @@ def identify_priority_stories(headline_map: Dict[str, Dict]) -> List[str]:
                     temperature=0.2
                 )
             )
-        
+        logging.info(f"Gemini returned {len(response.parsed)} prioritized headlines.")
         return response.parsed
     except Exception as e:
-        print(f"AI Filter failed, falling back to recent headlines: {e}")
+        logging.error(f"AI Filter failed, falling back to recent headlines: {e}")
         # Fallback: Return the first 5 IDs from the map
         return list(headline_map.keys())[:5]
 
 def scrape_article_content(url: str) -> str:
     """Helper function to download and parse a single article."""
+    logging.info(f"Scraping {url} for content...")
     config = Config()
     config.browser_user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
     config.request_timeout = 10
@@ -109,7 +122,7 @@ def scrape_article_content(url: str) -> str:
             text = text[:cutoff+1] if cutoff != -1 else text[:5000]
         return text
     except Exception as e:
-        print(f"Failed to scrape {url}: {e}")
+        logging.warning(f"Failed to scrape {url}: {e}")
         return ""
 
 def compile_news_brief(priority_ids: List[str], headline_map: Dict[str, Dict]) -> str:
@@ -128,7 +141,8 @@ def compile_news_brief(priority_ids: List[str], headline_map: Dict[str, Dict]) -
                 f"\n[STOCK: {story['ticker']}] TITLE: {story['title']}\n"
                 f"CONTENT: {content}\n"
             )
-            
+    
+    logging.info(f"Compiled news brief with {len(priority_ids)} articles.")
     return full_context
 
 def generate_discord_summary(news_context: str) -> str:
@@ -151,6 +165,7 @@ def generate_discord_summary(news_context: str) -> str:
     """
 
     try:
+        logging.info("Sending compiled context to Gemini for Discord summary...")
         response = client.models.generate_content(
             model="gemini-3-flash-preview",
             contents=[prompt],
@@ -158,6 +173,7 @@ def generate_discord_summary(news_context: str) -> str:
                 temperature=0.2
             )
         )
+        logging.info("Gemini summary generated successfully.")
         return response.text
     except Exception as e:
         print(f"An error occured with AI summary: {e}")
@@ -197,7 +213,7 @@ def main():
 
     # 2. Filter
     priority_ids = identify_priority_stories(headlines_map)
-    print(priority_ids)
+    logging.info(f"priority ids: {priority_ids}")
     
     # 3. Scrape
     context_data = compile_news_brief(priority_ids, headlines_map)
@@ -208,11 +224,11 @@ def main():
 
     # 4. Summarize
     final_summary = generate_discord_summary(context_data)
-    print(final_summary)
+    logging.info(f"final summary: {final_summary}")
 
     # 5. Notify
     send_to_discord(final_summary)
-    print("Completed!")
+    logging.info("Daily stock news bot completed successfully.")
 
 if __name__ == "__main__":
     main()
