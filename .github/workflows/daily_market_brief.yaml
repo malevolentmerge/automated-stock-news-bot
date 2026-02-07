@@ -3,7 +3,7 @@ name: Daily Market Brief
 on:
   schedule:
     # 4:30 PM EST (UTC-5) Monday–Friday
-    - cron: "0 30 16 * * MON-FRI"
+    - cron: "30 16 * * 1-5"
 
   workflow_dispatch:
 
