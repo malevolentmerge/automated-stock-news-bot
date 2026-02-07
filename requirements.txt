@@ -1,0 +1,5 @@
+requests
+feedparser
+newspaper3k
+lxml[html_clean]
+google-genai
