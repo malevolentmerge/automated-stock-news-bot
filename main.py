@@ -32,11 +32,10 @@ else:
 
 # --- CORE FUNCTIONS ---
 def fetch_rss_headlines(tickers: List[str]) -> Dict[str, Dict]:
-    """Fetches RSS headlines filtered strictly by current Year-Month-Day."""
-    logging.info(f"Scanning RSS feeds for date: {today_date}")
-    
+    """Fetches RSS headlines filtered strictly by current Year-Month-Day."""    
     # Get current date (UTC) as a date object: YYYY-MM-DD
     today_date = datetime.now(timezone.utc).date()
+    logging.info(f"Scanning RSS feeds for date: {today_date}")
     
     print(f"Scanning feeds for date: {today_date}")
     headline_map = {}
