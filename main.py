@@ -22,12 +22,10 @@ else:
     raise ValueError("Missing GEMINI_API_KEY environment variable")
 
 # --- CORE FUNCTIONS ---
-
 def fetch_rss_headlines(tickers: List[str]) -> Dict[str, Dict]:
     """Fetches RSS headlines filtered strictly by current Year-Month-Day."""
     
     # Get current date (UTC) as a date object: YYYY-MM-DD
-    # Using datetime.now(timezone.utc) is the modern standard
     today_date = datetime.now(timezone.utc).date()
     
     print(f"Scanning feeds for date: {today_date}")
@@ -43,7 +41,6 @@ def fetch_rss_headlines(tickers: List[str]) -> Dict[str, Dict]:
                 continue
             
             # 2. Convert time_struct to date object (removes hours/mins/secs)
-            # time.mktime converts struct to seconds, fromtimestamp makes it a datetime
             pub_date = datetime.fromtimestamp(time.mktime(entry.published_parsed)).date()
 
             # 3. Direct comparison: Year, Month, and Day match only
@@ -84,7 +81,7 @@ def identify_priority_stories(headline_map: Dict[str, Dict]) -> List[str]:
                 contents=[prompt],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    response_schema=list[str],   # 🔥 forces valid JSON array of strings
+                    response_schema=list[str], 
                     temperature=0.2
                 )
             )
@@ -190,7 +187,6 @@ def send_to_discord(text: str):
         time.sleep(1)
 
 # --- MAIN EXECUTION FLOW ---
-
 def main():
     # 1. Fetch
     headlines_map = fetch_rss_headlines(TICKERS)
