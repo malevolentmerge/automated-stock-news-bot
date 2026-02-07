@@ -10,8 +10,7 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    environment: prod   # must match your environment name
-
+    environment: prod 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4

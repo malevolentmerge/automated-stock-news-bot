@@ -168,11 +168,12 @@ def send_to_discord(text: str):
     if not DISCORD_WEBHOOK_URL:
         print("No Discord Webhook URL provided.")
         return
-
+    
     # Split by sentences, ensuring chunks are under 2000 chars
     sentences = re.split(r'(?<=[.!?]) +', text)
     messages = []
-    current_message = "📊 **Daily Portfolio Briefing**\n\n"
+    today_str = datetime.now().strftime("%m-%d-%Y")
+    current_message = f"📊 **Daily Portfolio Briefing - {today_str}**\n\n"
     
     for sentence in sentences:
         if len(current_message) + len(sentence) > 1900:
