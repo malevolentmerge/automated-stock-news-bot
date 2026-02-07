@@ -10,6 +10,7 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    environment: prod   # must match your environment name
 
     steps:
       - name: Checkout repo
