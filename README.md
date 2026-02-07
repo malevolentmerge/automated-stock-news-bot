@@ -1,6 +1,8 @@
 # automated-stock-news-bot
 
-This repository contains a Python script that automatically fetches stock news, analyzes market-moving events using Google Gemini AI, and posts a concise, actionable summary to a Discord channel. The bot is designed for professional investors who want a quick, scannable market brief after U.S. market close.
+> ⚠️ **Disclaimer:** This project is for educational and personal use only. I am **not a financial advisor**, and nothing in this repository constitutes financial advice. Always do your own research before making any investment decisions. This bot is purely a fun personal project to explore Python, AI, and automation.
+
+This repository contains a Python script that automatically fetches stock news, analyzes market-moving events using Google Gemini AI, and posts a concise, actionable summary to a Discord channel.
 
 ---
 
@@ -15,7 +17,6 @@ This repository contains a Python script that automatically fetches stock news, 
 - Automatically posts the summary to a Discord channel via webhook.
 - Scheduled to run Monday–Friday after market close (4:30 PM EST) using GitHub Actions.
 
----
 
 ## Prerequisites
 
@@ -24,7 +25,6 @@ This repository contains a Python script that automatically fetches stock news, 
 - Google Gemini API key
 - Dependencies listed in `requirements.txt`
 
----
 
 ## Installation
 
@@ -38,7 +38,6 @@ This repository contains a Python script that automatically fetches stock news, 
 
 `pip install -r requirements.txt`
 
----
 
 ## Configuration
 
@@ -48,8 +47,6 @@ This repository contains a Python script that automatically fetches stock news, 
 `export DISCORD_WEBHOOK_URL="your_discord_webhook_url"`
 
 2. Optional: edit the `TICKERS` list in `main.py` to add or remove stock symbols.
-
----
 
 ## Running Locally
 
@@ -64,8 +61,6 @@ The script will:
 3. Scrape article content for context.
 4. Generate a concise Discord-ready summary.
 5. Post the summary to your configured Discord webhook.
-
----
 
 ## GitHub Actions Automation
 
@@ -90,16 +85,12 @@ Add the following repository secrets in GitHub:
 3. Generates a professional, scannable Discord summary.
 4. Posts to the Discord channel.
 
----
-
 ## Notes
 
 - The bot truncates articles to the first ~5000 characters to save context tokens and speed up AI processing.
 - Currently, the bot filters news by today’s date (UTC) to avoid posting outdated headlines.
 - During daylight savings time (EDT), update the GitHub Actions cron schedule to match 4:30 PM local time.
 - For personal use, repository secrets are sufficient; no need for environment secrets unless you want multiple environments.
-
----
 
 ## Contributing
 
